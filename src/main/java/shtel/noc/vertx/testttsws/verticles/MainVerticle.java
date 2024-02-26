@@ -65,7 +65,7 @@ public class MainVerticle extends AbstractVerticle {
     //返回所需要的参数
     private static AtomicInteger returnCounter = new AtomicInteger(0);
     //原子类，计算返回的个数
-    private static AtomicInteger CounterCouncurrency = new AtomicInteger(0);
+    private static AtomicInteger CounterCouncurrency ;
     @Override
     public void start(Promise<Void> startPromise) {
         updateConfig(config().getJsonObject("adapter"));
@@ -97,7 +97,7 @@ public class MainVerticle extends AbstractVerticle {
                     JsonObject body = r.getBodyAsJson();
                     //请求体对象进行内部映射
                     requestSimParams = new RequestSimParams(body);
-                    //原子类进行加减
+                    //原子类进行加减start send
                     GlobalParams.getI().set(0);
                     log.info(new Date() + "  start to test online! concurrency " + requestSimParams.getConcurrency() + ", serviceUrl " + requestSimParams.getServiceUrl() + "   !!!!!!!!!!");
 
@@ -106,7 +106,9 @@ public class MainVerticle extends AbstractVerticle {
                     taskList = simulator(requestSimParams);
                     log.info("start send {} text!", taskList.size());
                     AtomicInteger ix=new AtomicInteger(0);
+                    CounterCouncurrency = new AtomicInteger(0);
                     vertx.setPeriodic(10,sp->{
+                        log.info("开始发送了11111111111111");
                         //这段逻辑就是控制并发数，并将列表里的task发送完
                         if(CounterCouncurrency.getAndIncrement() < requestSimParams.getConcurrency()){
                             log.info(new Date() + "send text {}, wavCid {}", ix.get()+1, taskList.get(ix.get()));
@@ -115,6 +117,8 @@ public class MainVerticle extends AbstractVerticle {
                             ix.incrementAndGet();
                         }else{
                             CounterCouncurrency.decrementAndGet();
+//                            log.info("开始发送了11111111111111");
+                            log.info("CounterCouncurrency is {}",CounterCouncurrency.get());
                         }
                         if(ix.get() >= taskList.size()){
                             vertx.cancelTimer(sp);
@@ -122,6 +126,7 @@ public class MainVerticle extends AbstractVerticle {
                         }
                     });
                     GlobalParams.getI().set(1);
+                    log.info("开始发送了22222222222222");
                     r.response().end(String.format("start send text! required %d text, send %d text", requestSimParams.getConcurrency(), taskList.size()));
                 });
 
