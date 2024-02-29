@@ -62,10 +62,9 @@ public class MainVerticle extends AbstractVerticle {
     private static RequestSimParams requestSimParams;
 
     private static ConcurrentHashMap<String, String> receiveInterval = new ConcurrentHashMap<>();
-    //返回所需要的参数
-    private static AtomicInteger returnCounter = new AtomicInteger(0);
+
     //原子类，计算返回的个数
-    private static AtomicInteger CounterCouncurrency ;
+    private static AtomicInteger CounterCouncurrency = new AtomicInteger(0);
     @Override
     public void start(Promise<Void> startPromise) {
         updateConfig(config().getJsonObject("adapter"));
@@ -108,7 +107,7 @@ public class MainVerticle extends AbstractVerticle {
                     AtomicInteger ix=new AtomicInteger(0);
                     CounterCouncurrency = new AtomicInteger(0);
                     vertx.setPeriodic(10,sp->{
-                        log.info("开始发送了11111111111111");
+//                        log.info("开始发送了11111111111111");
                         //这段逻辑就是控制并发数，并将列表里的task发送完
                         if(CounterCouncurrency.getAndIncrement() < requestSimParams.getConcurrency()){
                             log.info(new Date() + "send text {}, wavCid {}", ix.get()+1, taskList.get(ix.get()));
@@ -126,7 +125,7 @@ public class MainVerticle extends AbstractVerticle {
                         }
                     });
                     GlobalParams.getI().set(1);
-                    log.info("开始发送了22222222222222");
+//                    log.info("开始发送了22222222222222");
                     r.response().end(String.format("start send text! required %d text, send %d text", requestSimParams.getConcurrency(), taskList.size()));
                 });
 
@@ -168,6 +167,11 @@ public class MainVerticle extends AbstractVerticle {
                     //处理文件下标，取文件的头部，将其按照“-”拆分,存在pathList中
                     String filePath = path.getName().split("\\.")[0];
                     log.info("!!!!!!!!!!!!!!!!!!!!!!!{}",filePath);
+                    JsonObject params = new JsonObject()
+                            .put("speed", rsp.getSpeed())
+                            .put("tone", rsp.getTone())
+                            .put("volume", rsp.getVolume())
+                            .put("speaker", rsp.getSpeaker());
 
                     //taskList，用户任务条
                     taskList.add(
@@ -178,6 +182,7 @@ public class MainVerticle extends AbstractVerticle {
                             .put("serviceUrl", rsp.getServiceUrl())
                             .put("continues", rsp.isContinues())
                             .put("savePcm", rsp.isSavePcm())
+                            .put("params", params)
                     );
                 }
             });
@@ -202,7 +207,7 @@ public class MainVerticle extends AbstractVerticle {
                 .put("uid", uid)
                 .put("modelId", task.getString("modelId"))
                 .put("text", textData)
-                .put("params", new JsonObject().put("speaker", "bk611"));
+                .put("params", task.getJsonObject("params"));
 
         log.info("Start send uid {}, file {}", uid, task.getString("file"));
 
@@ -211,13 +216,14 @@ public class MainVerticle extends AbstractVerticle {
         WebSocketConnectOptions options = new WebSocketConnectOptions()
                 .setHost(url.getHost())
                 .setPort(url.getPort())
-                .setURI(url.getPath());
+                .setURI(url.getPath())
+                ;
 
         WsClient.webSocket(options, websocket ->{
            if(websocket.succeeded()){
                WebSocket ws = websocket.result();
                ws.writeFinalTextFrame(data.encode());
-
+                log.info(data.encode());
                ws.frameHandler(frame -> {
                    if (frame.isText()) {
                        JsonObject audioData = new JsonObject(frame.textData());

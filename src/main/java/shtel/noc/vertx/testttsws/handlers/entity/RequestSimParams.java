@@ -32,6 +32,13 @@ public class RequestSimParams {
   private String modelId;
   private boolean continues;
 
+  /*
+   * params参数设置
+   */
+  private String speed;
+  private String tone;
+  private String volume;
+  private String speaker;
 
   public RequestSimParams(JsonObject requestJson){
     concurrency = requestJson.getInteger("concurrency");
@@ -39,6 +46,25 @@ public class RequestSimParams {
     savePcm = requestJson.getBoolean("savePcm");
     filePath = requestJson.getString("filePath");
     modelId=requestJson.getString("modelId");
+
+    speed = requestJson.getString("speed");
+    tone = requestJson.getString("tone");
+    volume = requestJson.getString("volume");
+    speed = requestJson.getString("speaker");
+    if(speed==null){
+      speed = "50";
+    }
+    if(tone==null){
+      tone ="50";
+    }
+    if(volume==null){
+      volume="50";
+    }
+    if(speaker==null){
+      speaker="bk611";
+    }
+
+
     if (modelId==null){
       modelId="159901";
     }

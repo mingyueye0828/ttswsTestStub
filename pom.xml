@@ -164,7 +164,7 @@
                     <to>
                         <!--          目标镜像              -->
                         <image>
-                            172.16.105.233/${docker.image.prefix}/testttswsstub:1.0.1
+                            172.16.105.233/${docker.image.prefix}/testttswsstub:1.0.2
                             <!--interface:28038/${docker.registry}/${docker.image.prefix}/testasrhttp:latest-->
                             <!--172.16.105.233/${docker.registry}/${docker.image.prefix}/testasrhttp:latest-->
                         </image>
